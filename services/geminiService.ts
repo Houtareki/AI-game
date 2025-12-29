@@ -225,10 +225,10 @@ export const startNewGame = async (profile: CharacterProfile, apiKey: string | n
     ${coreMemory}
     
     YÊU CẦU KHỞI TẠO GAME RPG SINH TỒN:
-    1. Viết CHƯƠNG 1 (MỞ ĐẦU) thật hoành tráng (1500+ từ).
+    1. Viết CHƯƠNG 1 (MỞ ĐẦU) khoảng 800-1000 từ. Hãy viết thật cuốn hút.
     2. Xác định rõ 'currentLocation'.
     3. KHỞI TẠO CHỈ SỐ RPG (statsUpdate).
-    4. Trạng thái sinh tồn mặc định là HP 100/100, Sanity 100/100. (Không cần trả về statusChanges trừ khi bị thương ngay lập tức).
+    4. Trạng thái sinh tồn mặc định là HP 100/100, Sanity 100/100.
     5. KHỞI TẠO NHIỆM VỤ: Ít nhất 1 Main Quest.
     6. Ngôn ngữ: TIẾNG VIỆT.
   `;
@@ -262,7 +262,7 @@ export const continueStory = async (
   fullNotebook: NotebookEntry[], 
   currentQuests: Quest[],
   currentStats: CharacterStats,
-  playerStatus: PlayerStatus, // NEW: Current HP/Sanity
+  playerStatus: PlayerStatus, 
   playerLocation: string,
   apiKey: string | null
 ): Promise<StorySegment> => {
@@ -303,7 +303,7 @@ export const continueStory = async (
     ${actionPrompt}
 
     YÊU CẦU:
-    1. Viết tiếp câu chuyện (1500-2000 chữ).
+    1. Viết tiếp câu chuyện (800-1200 từ).
     2. QUAN TRỌNG: Cập nhật 'statusChanges' (hp, sanity) nếu nhân vật bị thương hoặc hồi phục.
     3. Cập nhật vị trí và sổ tay nếu cần.
     4. Nếu HP < 30 hoặc Sanity < 30, văn phong phải thay đổi để phản ánh sự đau đớn/điên loạn.
