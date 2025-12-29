@@ -42,6 +42,51 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, isLoading }) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
+  // Export Template
+  const exportTemplate = () => {
+    if (!profile.name && !profile.customSetting) {
+       alert("Hãy nhập ít nhất tên hoặc mô tả để lưu mẫu.");
+       return;
+    }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    const fileName = `template_${profile.name || 'unnamed'}_${Date.now()}.json`;
+    downloadAnchorNode.setAttribute("download", fileName);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  // Import Template
+  const importTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    if (event.target.files && event.target.files.length > 0) {
+      fileReader.readAsText(event.target.files[0], "UTF-8");
+      fileReader.onload = (e) => {
+        if (e.target?.result) {
+          try {
+            const parsedData = JSON.parse(e.target.result as string) as CharacterProfile;
+            // Basic check
+            if (typeof parsedData.name === 'string' && typeof parsedData.genre === 'string') {
+               setProfile({
+                   ...profile, // keep defaults if missing
+                   ...parsedData
+               });
+               alert("Đã nhập mẫu nhân vật thành công!");
+            } else {
+               throw new Error("Invalid format");
+            }
+          } catch (err) {
+            alert("File mẫu không hợp lệ.");
+          }
+        }
+      };
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 flex flex-col items-center min-h-[90vh] justify-center fade-in">
       <div className="text-center mb-8">
@@ -78,6 +123,20 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, isLoading }) => {
           {activeTab === 'create' ? (
             <form onSubmit={handleStart} className="space-y-6">
               
+              {/* Template Controls */}
+              <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                 <div className="text-xs text-gray-400">Bạn có file mẫu nhân vật cũ?</div>
+                 <div className="flex gap-2">
+                    <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded text-xs font-bold border border-gray-600 transition-colors">
+                       📂 Nhập Mẫu
+                       <input type="file" accept=".json" className="hidden" onChange={importTemplate} />
+                    </label>
+                    <button type="button" onClick={exportTemplate} className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded text-xs font-bold border border-gray-600 transition-colors">
+                       💾 Xuất Mẫu
+                    </button>
+                 </div>
+              </div>
+
               {/* Genre Selection */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-gray-300 uppercase tracking-wide">1. Chọn Thể Loại</label>
@@ -103,7 +162,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, isLoading }) => {
               <div className="space-y-4 pt-4 border-t border-gray-800">
                 <div className="flex justify-between items-center">
                    <label className="text-sm font-semibold text-gray-300 uppercase tracking-wide">2. Hồ sơ nhân vật (Không bắt buộc)</label>
-                   <span className="text-xs text-gray-500 italic">Core Memory - AI sẽ luôn nhớ điều này</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

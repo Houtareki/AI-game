@@ -2,8 +2,6 @@ import { useState, useCallback } from 'react';
 import { GameState, CharacterProfile, NotebookEntry, Quest, PlayerStatus } from '../types';
 import { startNewGame, continueStory, generateStorySummary } from '../services/geminiService';
 
-const SAVE_KEY = 'infinite_chronicles_save';
-
 const INITIAL_STATE: GameState = {
   history: [],
   characterProfile: {
@@ -84,7 +82,13 @@ export const useGameEngine = () => {
       }));
     } catch (err: any) {
       console.error(err);
-      setGameState(prev => ({ ...prev, isLoading: false, error: "Không thể khởi tạo. Kiểm tra API Key/Mạng." }));
+      let errorMessage = "Không thể khởi tạo cốt truyện. ";
+      if (err.message && (err.message.includes("JSON") || err.message.includes("Unexpected token"))) {
+        errorMessage += "Lỗi dữ liệu từ AI (JSON Parsing). Hãy thử lại.";
+      } else {
+        errorMessage += "Vui lòng kiểm tra API Key hoặc kết nối mạng.";
+      }
+      setGameState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
     }
   }, []);
 
@@ -131,14 +135,19 @@ export const useGameEngine = () => {
       });
     } catch (err: any) {
       console.error(err);
-      setGameState(prev => ({ ...prev, isLoading: false, error: "AI bị gián đoạn. Hãy thử lại." }));
+      let errorMessage = "AI bị gián đoạn. ";
+      if (err.message && (err.message.includes("JSON") || err.message.includes("Unexpected token"))) {
+        errorMessage += "Dữ liệu trả về bị lỗi. Hãy thử lại.";
+      } else {
+        errorMessage += "Có thể do lỗi mạng hoặc API Key.";
+      }
+      setGameState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
     }
   }, [gameState]);
 
   const undo = useCallback(() => {
     setGameState(prev => {
       if (prev.history.length <= 1) return prev;
-      // Simple revert status logic (imperfect but functional)
       const lastSegment = prev.history[prev.history.length - 1];
       let revertedStatus = { ...prev.playerStatus };
       if (lastSegment.statusChanges) {
@@ -155,26 +164,8 @@ export const useGameEngine = () => {
     });
   }, []);
 
-  const saveGame = useCallback(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-      alert("Đã lưu game thành công!");
-    } catch (e) { alert("Lỗi lưu game (Bộ nhớ đầy?)"); }
-  }, [gameState]);
-
-  const loadGame = useCallback(() => {
-    try {
-      const saved = localStorage.getItem(SAVE_KEY);
-      if (!saved) { alert("Không tìm thấy bản lưu."); return; }
-      if (window.confirm("Tải lại game? Tiến trình hiện tại sẽ mất.")) {
-        const parsed = JSON.parse(saved);
-        setGameState(prev => ({
-          ...prev, ...parsed,
-          notebook: parsed.notebook || [], quests: parsed.quests || [],
-          isLoading: false, error: null
-        }));
-      }
-    } catch (e) { alert("File lưu lỗi."); }
+  const loadGameFromData = useCallback((data: GameState) => {
+    setGameState({ ...data, isLoading: false, error: null });
   }, []);
 
   const restartGame = useCallback(() => {
@@ -191,6 +182,6 @@ export const useGameEngine = () => {
 
   return {
     gameState,
-    actions: { startGame, makeChoice, undo, saveGame, loadGame, restartGame, toggleCheat, clearError }
+    actions: { startGame, makeChoice, undo, loadGameFromData, restartGame, toggleCheat, clearError }
   };
 };

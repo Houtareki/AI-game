@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StorySegment, CharacterProfile, NotebookEntry, Quest, CharacterStats, StoryChoice, PlayerStatus } from '../types';
+import { StorySegment, CharacterProfile, NotebookEntry, Quest, CharacterStats, StoryChoice, PlayerStatus, GameState } from '../types';
 import Button from './Button';
 import CheatConsole from './CheatConsole';
 import NotebookModal from './NotebookModal';
@@ -12,21 +12,21 @@ interface StoryInterfaceProps {
   quests: Quest[];
   stats: CharacterStats;
   playerStatus: PlayerStatus;
+  gameState: GameState; // Added full state
   onChoice: (choiceText: string, isCheat: boolean) => void;
   isLoading: boolean;
   isCheatMode: boolean;
   toggleCheatMode: () => void;
   onRestart: () => void;
-  onSave: () => void;
-  onLoad: () => void;
+  onLoadGame: (data: GameState) => void; // Updated prop type
   onUndo: () => void;
   canUndo: boolean;
 }
 
 const StoryInterface: React.FC<StoryInterfaceProps> = ({ 
-  segment, profile, notebook, quests, stats, playerStatus,
+  segment, profile, notebook, quests, stats, playerStatus, gameState,
   onChoice, isLoading, isCheatMode, toggleCheatMode,
-  onRestart, onSave, onLoad, onUndo, canUndo
+  onRestart, onLoadGame, onUndo, canUndo
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -102,9 +102,10 @@ const StoryInterface: React.FC<StoryInterfaceProps> = ({
       {/* Sidebar Component */}
       <Sidebar 
         segment={segment} notebook={notebook} quests={quests} stats={stats} playerStatus={playerStatus}
+        gameState={gameState} // Pass full state
         isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen}
         onOpenNotebook={() => setIsNotebookOpen(true)}
-        onUndo={onUndo} onSave={onSave} onLoad={onLoad} onRestart={onRestart}
+        onUndo={onUndo} onLoadGame={onLoadGame} onRestart={onRestart}
         toggleCheatMode={toggleCheatMode} isCheatMode={isCheatMode} canUndo={canUndo} isLoading={isLoading}
       />
 
@@ -128,7 +129,7 @@ const StoryInterface: React.FC<StoryInterfaceProps> = ({
                  <p className="text-gray-400 mb-6">
                    {playerStatus.hp <= 0 ? "Sức cùng lực kiệt, hành trình của bạn dừng lại tại đây." : (playerStatus.sanity <= 0 ? "Tâm trí bạn vỡ vụn, thực tại chỉ còn là những mảnh ghép méo mó." : "Hành trình đã kết thúc.")}
                  </p>
-                 <div className="flex justify-center gap-4"><Button onClick={onLoad} variant="secondary">Tải lại bản lưu</Button><Button onClick={onRestart} variant="danger">Chơi lại từ đầu</Button></div>
+                 <div className="flex justify-center gap-4"><Button onClick={() => window.location.reload()} variant="secondary">Tải lại trang</Button><Button onClick={onRestart} variant="danger">Chơi lại từ đầu</Button></div>
                </div>
              )}
           </div>
@@ -181,7 +182,7 @@ const StoryInterface: React.FC<StoryInterfaceProps> = ({
                   )}
                 </>
              ) : (
-                <div className="flex gap-2"><Button onClick={onRestart} className="flex-1 py-3 text-sm">Chơi lại</Button><Button onClick={onLoad} variant="secondary" className="flex-1 py-3 text-sm">Tải bản lưu</Button></div>
+                <div className="flex gap-2"><Button onClick={onRestart} className="flex-1 py-3 text-sm">Chơi lại</Button></div>
              )}
            </div>
         </div>

@@ -35,13 +35,13 @@ const App: React.FC = () => {
           quests={gameState.quests}
           stats={gameState.stats}
           playerStatus={gameState.playerStatus}
+          gameState={gameState} // Pass full state
           onChoice={actions.makeChoice}
           isLoading={gameState.isLoading}
           isCheatMode={gameState.isCheatMode}
           toggleCheatMode={actions.toggleCheat}
           onRestart={actions.restartGame}
-          onSave={actions.saveGame}
-          onLoad={actions.loadGame}
+          onLoadGame={actions.loadGameFromData} // Use new action
           onUndo={actions.undo}
           canUndo={gameState.history.length > 1}
         />
